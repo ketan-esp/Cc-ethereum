@@ -30,7 +30,6 @@ import (
 // TestEthProtocolNegotiation tests whether the test suite
 // can negotiate the highest eth protocol in a status message exchange
 func TestEthProtocolNegotiation(t *testing.T) {
-	t.Parallel()
 	var tests = []struct {
 		conn     *Conn
 		caps     []p2p.Cap
@@ -126,7 +125,6 @@ func TestEthProtocolNegotiation(t *testing.T) {
 // TestChain_GetHeaders tests whether the test suite can correctly
 // respond to a GetBlockHeaders request from a node.
 func TestChain_GetHeaders(t *testing.T) {
-	t.Parallel()
 	chainFile, err := filepath.Abs("./testdata/chain.rlp")
 	if err != nil {
 		t.Fatal(err)
@@ -147,7 +145,7 @@ func TestChain_GetHeaders(t *testing.T) {
 	}{
 		{
 			req: GetBlockHeaders{
-				GetBlockHeadersRequest: &eth.GetBlockHeadersRequest{
+				GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
 					Origin:  eth.HashOrNumber{Number: uint64(2)},
 					Amount:  uint64(5),
 					Skip:    1,
@@ -164,7 +162,7 @@ func TestChain_GetHeaders(t *testing.T) {
 		},
 		{
 			req: GetBlockHeaders{
-				GetBlockHeadersRequest: &eth.GetBlockHeadersRequest{
+				GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
 					Origin:  eth.HashOrNumber{Number: uint64(chain.Len() - 1)},
 					Amount:  uint64(3),
 					Skip:    0,
@@ -179,7 +177,7 @@ func TestChain_GetHeaders(t *testing.T) {
 		},
 		{
 			req: GetBlockHeaders{
-				GetBlockHeadersRequest: &eth.GetBlockHeadersRequest{
+				GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
 					Origin:  eth.HashOrNumber{Hash: chain.Head().Hash()},
 					Amount:  uint64(1),
 					Skip:    0,

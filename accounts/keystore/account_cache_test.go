@@ -17,12 +17,12 @@
 package keystore
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 
@@ -30,7 +30,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common"
-	"golang.org/x/exp/slices"
 )
 
 var (
@@ -68,14 +67,14 @@ func waitWatcherStart(ks *KeyStore) bool {
 
 func waitForAccounts(wantAccounts []accounts.Account, ks *KeyStore) error {
 	var list []accounts.Account
-	for t0 := time.Now(); time.Since(t0) < 5*time.Second; time.Sleep(100 * time.Millisecond) {
+	for t0 := time.Now(); time.Since(t0) < 5*time.Second; time.Sleep(200 * time.Millisecond) {
 		list = ks.Accounts()
 		if reflect.DeepEqual(list, wantAccounts) {
 			// ks should have also received change notifications
 			select {
 			case <-ks.changes:
 			default:
-				return errors.New("wasn't notified of new accounts")
+				return fmt.Errorf("wasn't notified of new accounts")
 			}
 			return nil
 		}
@@ -203,7 +202,7 @@ func TestCacheAddDeleteOrder(t *testing.T) {
 	// Check that the account list is sorted by filename.
 	wantAccounts := make([]accounts.Account, len(accs))
 	copy(wantAccounts, accs)
-	slices.SortFunc(wantAccounts, byURL)
+	sort.Sort(accountsByURL(wantAccounts))
 	list := cache.accounts()
 	if !reflect.DeepEqual(list, wantAccounts) {
 		t.Fatalf("got accounts: %s\nwant %s", spew.Sdump(accs), spew.Sdump(wantAccounts))
@@ -350,7 +349,7 @@ func TestUpdatedKeyfileContents(t *testing.T) {
 		return
 	}
 	// needed so that modTime of `file` is different to its current value after forceCopyFile
-	os.Chtimes(file, time.Now().Add(-time.Second), time.Now().Add(-time.Second))
+	time.Sleep(time.Second)
 
 	// Now replace file contents
 	if err := forceCopyFile(file, cachetestAccounts[1].URL.Path); err != nil {
@@ -366,7 +365,7 @@ func TestUpdatedKeyfileContents(t *testing.T) {
 	}
 
 	// needed so that modTime of `file` is different to its current value after forceCopyFile
-	os.Chtimes(file, time.Now().Add(-time.Second), time.Now().Add(-time.Second))
+	time.Sleep(time.Second)
 
 	// Now replace file contents again
 	if err := forceCopyFile(file, cachetestAccounts[2].URL.Path); err != nil {
@@ -382,7 +381,7 @@ func TestUpdatedKeyfileContents(t *testing.T) {
 	}
 
 	// needed so that modTime of `file` is different to its current value after os.WriteFile
-	os.Chtimes(file, time.Now().Add(-time.Second), time.Now().Add(-time.Second))
+	time.Sleep(time.Second)
 
 	// Now replace file contents with crap
 	if err := os.WriteFile(file, []byte("foo"), 0600); err != nil {

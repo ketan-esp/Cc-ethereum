@@ -21,7 +21,7 @@ package signify
 
 import (
 	"bytes"
-	"crypto/ed25519"
+	"golang.org/x/crypto/ed25519"
 	"encoding/base64"
 	"errors"
 	"fmt"
